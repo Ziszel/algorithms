@@ -46,8 +46,8 @@ def show_score(color, font, size):
 
 
 def generate_pickup():
-    return [random.randrange(1, (WINDOW_X // 10)) * 10,
-            random.randrange(1, (WINDOW_Y // 10)) * 10]
+    return [random.randrange(1, (WINDOW_X / 10)) * 10,
+            random.randrange(1, (WINDOW_Y / 10)) * 10]
 
 
 def move_snake(current_snake_position, move_dir):
@@ -64,6 +64,43 @@ def move_snake(current_snake_position, move_dir):
     if move_dir == 3:  # right
         current_snake_position[0] += 10
         direction = "RIGHT"
+
+
+def distance_snake_pickup(s_pos, p_pos):
+    x_dist = s_pos[0] - p_pos[0]
+    y_dist = s_pos[1] - p_pos[1]
+
+    return [x_dist, y_dist]
+
+
+def agent_min(gamestate, alpha, beta):
+    return 0
+
+
+def agent_max(gamestate, alpha, beta):
+    return 0
+
+
+def move_minmax(current_snake_position, current_pickup_position):
+    global direction
+    has_moved = False
+    distance = distance_snake_pickup(current_snake_position, current_pickup_position)
+    while not has_moved:
+        print(direction)
+        print(distance)
+        if distance[1] > 0 and not direction == "DOWN":
+            move_snake(current_snake_position, 0)
+            has_moved = True
+        elif distance[1] < 0 and not direction == "UP":
+            move_snake(current_snake_position, 1)
+            has_moved = True
+        if distance[0] > 0 and not direction == "RIGHT":
+            move_snake(current_snake_position, 2)
+            has_moved = True
+        elif distance[0] < 0 and not direction == "LEFT":
+            move_snake(current_snake_position, 3)
+            has_moved = True
+    print(direction)
 
 
 def move_randomly(current_snake_position):
@@ -143,7 +180,7 @@ direction = "RIGHT"
 pygame.init()  # Initialise pygame, I can only set pygame values after this
 
 pygame.display.set_caption("Snake, minmax-pruning")
-window = pygame.display.set_mode((WINDOW_Y, WINDOW_Y))  # do I need the extra parenthesis here?
+window = pygame.display.set_mode((WINDOW_X, WINDOW_Y))  # do I need the extra parenthesis here?
 
 fps = pygame.time.Clock()
 
@@ -153,7 +190,9 @@ initialise_game()
 
 while not is_game_over:
     # Update
-    move_randomly(snake_position)
+    # move_randomly(snake_position)
+    if pickup_currently_exists:
+        move_minmax(snake_position, pickup_position)
 
     snake_body.insert(0, list(snake_position)) # without this, the snake will not move visually
     if snake_position[0] == pickup_position[0] and snake_position[1] == pickup_position[1]:
