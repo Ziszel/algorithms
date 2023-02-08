@@ -98,9 +98,35 @@ def agent_min(gamestate, alpha, beta):
 def agent_max(gamestate, alpha, beta):
     return 0
 
+# gamestate = snakes, snake bodies, and pickup location
+# 1 for state where the max snake hits the pickup
+# 1 for a state where the min snake hits the max snake
+# 0.5 for a state where the max snake is closer to the pickup
+# -1 for a state where the min snake hits the pickup
+# -1 for a state where the max snake hits the min snake
+# -0.5 for a state where the min snake is closer to the pickup
+def minimax(current_snake_position, current_pickup_position, direction, max_turn):
+    distance = distance_snake_pickup(current_snake_position, current_pickup_position)
+    if distance == 0 and max_turn:
+        return 1  # we have collected the pickup and improved our score which is the best case scenario
+    elif distance == 0 and not max_turn:
+        return -1  # another snake collected the pickup
 
-def minimax():
-    return False
+    possible_new_states = {
+        0: [current_snake_position[0] - 10, current_pickup_position[1]],  # up
+        1: [current_snake_position[0] + 10, current_pickup_position[1]],  # down
+        2: [current_snake_position[0], current_pickup_position[1] - 10],  # Left
+        3: [current_snake_position[0], current_pickup_position[1] + 10]  # Right
+    }
+
+    new_direction = direction
+
+    if max_turn:
+        for pos in possible_new_states:
+            minimax(pos, current_pickup_position, new_direction, False)
+    if not max_turn:
+        for pos in possible_new_states:
+            minimax(pos, current_pickup_position, new_direction, True)
 
 
 def distance_snake_pickup(s_pos, p_pos):
