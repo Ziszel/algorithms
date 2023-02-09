@@ -1,6 +1,4 @@
-import pygame
-import time
-import random
+import pygame, time, random, sys, heapq
 
 
 def initialise_game():
@@ -77,68 +75,130 @@ def generate_pickup():
 
 
 def move_snake(current_snake_position, move_dir):
-    if move_dir == 0:  # up
-        current_snake_position[1] -= 10
-        return "UP"
-    if move_dir == 1:  # down
-        current_snake_position[1] += 10
+        if move_dir == 0:  # up
+            current_snake_position[1] -= 10
+            return "UP"
+        if move_dir == 1:  # down
+            current_snake_position[1] += 10
+            return "DOWN"
+        if move_dir == 2:  # left
+            current_snake_position[0] -= 10
+            return   "LEFT"
+        if move_dir == 3:  # right
+            current_snake_position[0] += 10
+
+
+def get_neighbours(node, direction):
+    list_of_nodes = []
+
+    # get adjacent nodes up, down, left, and right of the current nodes
+    # returning single number
+    down_node = (node[0], node[1] + 10)  # down
+    up_node = (node[0], node[1] - 10)  # up
+    left_node = (node[0] + 10, node[1])  # left
+    right_node = (node[0] - 10, node[1])  # right
+
+    # only return nodes which are not directly opposite to the current direction
+    if direction == "UP":
+        list_of_nodes.insert(1, up_node)
+        list_of_nodes.insert(2, left_node)
+        list_of_nodes.insert(3, right_node)
+    elif direction == "DOWN":
+        list_of_nodes.insert(1, down_node)
+        list_of_nodes.insert(2, left_node)
+        list_of_nodes.insert(3, right_node)
+    elif direction == "LEFT":
+        list_of_nodes.insert(1, left_node)
+        list_of_nodes.insert(2, up_node)
+        list_of_nodes.insert(3, down_node)
+    elif direction == "RIGHT":
+        list_of_nodes.insert(1, right_node)
+        list_of_nodes.insert(2, up_node)
+        list_of_nodes.insert(3, down_node)
+
+    return list_of_nodes
+
+
+def get_current_direction(prev_node, curr_node):
+    if prev_node[0] > curr_node[0]:
         return "DOWN"
-    if move_dir == 2:  # left
-        current_snake_position[0] -= 10
-        return   "LEFT"
-    if move_dir == 3:  # right
-        current_snake_position[0] += 10
+    elif prev_node[0] < curr_node[0]:
+        return "UP"
+    elif prev_node[1] > prev_node[1]:
         return "RIGHT"
+    elif prev_node[1] < prev_node[1]:
+        return "LEFT"
 
 
-def agent_min(gamestate, alpha, beta):
-    return 0
+# Use A* pathfinding to move towards the pickup
+# A* is a small extension to Dijkstra that uses a heuristic that says: "we're getting a bit closer"
+# https://www.youtube.com/watch?v=ySN5Wnu88nE
+def a_star_pathfinding(current_snake_position, current_pickup_position):
+    global direction_sam
+    # Get the start and end of the grid to generate
+    start = (current_snake_position[0], current_snake_position[1])
+    end = (current_pickup_position[0], current_pickup_position[1])
+
+    # Create two lists: Open (created but not visited) and Closed (contains visited nodes)
+    # g(n) cost from the start node to the current node
+    # h(n) cost from the current node to the target node
+    # f(n) cost from the start node to the target node
+
+    # Create the 'game board' so that I can work out the positions of nodes for a distance check
+    # in this instance each node is always 10 away from one another giving me a consistent metric.
+    # for A* to work really well you need to have this consistency so that the distance measured is accurate
+    all_nodes = []
+    for x in range(0, WINDOW_X, snake_body_segment_size):
+        for y in range(0, WINDOW_Y, snake_body_segment_size):
+            all_nodes.append([x, y])
+
+    open_queue = [start]
+    closed_queue = []
+    final_node = ()
+    current_direction = direction_sam
+    previous_node = start
+    while len(open_queue) > 0:
+        current_node = open_queue.pop()
+        closed_queue.insert(1, current_node)
+        # if the goal has been reached, exit the loop!
+        if current_node[0] == end[0] and current_node[1] == end[1]:
+            while len(closed_queue) > 1:
+                final_node = closed_queue.pop()
+        # neighbour here actually means the 'x' and 'y' values (position) of the node
+        # so get three values (depending on current dir), and if they're not in the closed_queue, sort and store them
+        # work out direction and assign it to new_direction
+        if not current_node == start: # don't run this unless the current node is != to start
+            current_direction = get_current_direction(previous_node, current_node)
+        node_list = get_neighbours(current_node, current_direction)
+        sorted_node_dict = {}
+        for node in node_list:
+            if node not in closed_queue:
+                # arrange them by distance to pickup (my only heuristic) and add to open_queue
+                print(node)
+                node_distance_node = distance_between_pickup(node, current_pickup_position)
+                node_distance = node_distance_node[0] + node_distance_node[1]
+                print(node_distance)
+                sorted_node_dict[node_distance] = node
+        # I'm not sure if this will be added into open_queue in the right order
+        sorted_node_dict = dict(sorted(sorted_node_dict.items()))
+        for value in sorted_node_dict.values():
+            open_queue.insert(1, value)
+        previous_node = current_node
+
+    # move the snake to the node closest to the
+    current_snake_position = final_node
 
 
-def agent_max(gamestate, alpha, beta):
-    return 0
-
-# gamestate = snakes, snake bodies, and pickup location
-# 1 for state where the max snake hits the pickup
-# 1 for a state where the min snake hits the max snake
-# 0.5 for a state where the max snake is closer to the pickup
-# -1 for a state where the min snake hits the pickup
-# -1 for a state where the max snake hits the min snake
-# -0.5 for a state where the min snake is closer to the pickup
-def minimax(current_snake_position, current_pickup_position, direction, max_turn):
-    distance = distance_snake_pickup(current_snake_position, current_pickup_position)
-    if distance == 0 and max_turn:
-        return 1  # we have collected the pickup and improved our score which is the best case scenario
-    elif distance == 0 and not max_turn:
-        return -1  # another snake collected the pickup
-
-    possible_new_states = {
-        0: [current_snake_position[0] - 10, current_pickup_position[1]],  # up
-        1: [current_snake_position[0] + 10, current_pickup_position[1]],  # down
-        2: [current_snake_position[0], current_pickup_position[1] - 10],  # Left
-        3: [current_snake_position[0], current_pickup_position[1] + 10]  # Right
-    }
-
-    new_direction = direction
-
-    if max_turn:
-        for pos in possible_new_states:
-            minimax(pos, current_pickup_position, new_direction, False)
-    if not max_turn:
-        for pos in possible_new_states:
-            minimax(pos, current_pickup_position, new_direction, True)
-
-
-def distance_snake_pickup(s_pos, p_pos):
-    x_dist = s_pos[0] - p_pos[0]
-    y_dist = s_pos[1] - p_pos[1]
+def distance_between_pickup(s_pos, p_pos):
+    x_dist = abs(s_pos[0] - p_pos[0])
+    y_dist = abs(s_pos[1] - p_pos[1])
 
     return [x_dist, y_dist]
 
 
 def move_closest_to_pickup(current_snake_position, current_pickup_position, direction):
     has_moved = False
-    distance = distance_snake_pickup(current_snake_position, current_pickup_position)
+    distance = distance_between_pickup(current_snake_position, current_pickup_position)
     while not has_moved:
         print(direction)
         print(distance)
@@ -230,13 +290,15 @@ snake_body_segment_size = 10
 snake_speed = 60
 direction_sam = "RIGHT"
 direction_charlie = "RIGHT"
+# This is a much better way of representing directions.
+dirs = [[10, 0], [0, 10], [-10, 0], [0, -10]]
 pickup_position = [0, 0]
 pickup_currently_exists = False
 is_game_over = False
 
 pygame.init()  # Initialise pygame, I can only set pygame values after this
 
-pygame.display.set_caption("Snake, minmax-pruning")
+pygame.display.set_caption("Snake, path-finding")
 window = pygame.display.set_mode((WINDOW_X, WINDOW_Y))  # do I need the extra parenthesis here?
 
 fps = pygame.time.Clock()
@@ -247,6 +309,11 @@ initialise_game()
 
 while not is_game_over:
     # Update
+    for event in pygame.event.get(): # check if the player is trying to quit the game and if so close the window safely
+        if event.type == pygame.QUIT:
+            pygame.quit()  # quits the pygame module NOT the application
+            # quits the application (https://stackoverflow.com/questions/1997710/pygame-error-display-surface-quit-why)
+            sys.exit()
 
     # Move Charlie THEN move sam
     direction_charlie = move_randomly(snake_position_charlie, direction_charlie)
@@ -258,7 +325,8 @@ while not is_game_over:
         snake_body_charlie.pop()  # this is directly related to the snake_body.insert() line. Required.
 
     if pickup_currently_exists:
-        direction_sam = move_closest_to_pickup(snake_position_sam, pickup_position, direction_sam)
+        a_star_pathfinding(snake_position_sam, pickup_position)
+        #move_closest_to_pickup(snake_position_sam, pickup_position, direction_sam)
     snake_body_sam.insert(0, list(snake_position_sam))  # without this, the snake will not move visually
     if snake_position_sam[0] == pickup_position[0] and snake_position_sam[1] == pickup_position[1]:
         score_sam += 1
