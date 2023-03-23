@@ -11,5 +11,6 @@ Algorithms currently implemented:
 - Depth First Search (DFS) | straight forward graph data implementation
 - Breadth First Search (BFS) | straight forward graph data implementation
 - Binary Search | Basic implementation in C++
+- Quicksort | Basic implementation in C++
 - Minimax with Alpha / Beta pruning | Simple version of Tic Tac Toe, unbeatable
 - (not finished) A* pathfinding | Snake, pygame implementation
