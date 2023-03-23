@@ -22,71 +22,38 @@ void Swap(int &p1, int &p2)
     p2 = temp;
 }
 
-void QuickSort(std::vector<int> &a, int low, int high)
-{
-    if ((high - low) > 1)
-    {
+void QuickSort(std::vector<int>& a, int low, int high) {
+    if (low < high) {
+        int pivot = a.at((low + high) / 2); // Get the middle point of the array
+        // capture the complete bounds of each subarray
         int left_pointer = low - 1;
         int right_pointer = high + 1;
-
-        // ensure bounds are
-        ++left_pointer;
-        --right_pointer;
-
-        std::cout << "-----NEXT LOOP-----" << "\n";
-
-        int pivot_index = floor((high + low) / 2); // get the middle
-        int pivot_value = a.at(pivot_index);
-        std::cout << pivot_value << "\n";
-
-        // while left and right are within bounds
-        while (left_pointer < right_pointer)
-        {
-            std::cout << "-----ITERATION-----" << "\n";
-            PrintArray(a);
-            std::cout << left_pointer << " " << a.at(left_pointer) << "\n";
-            std::cout << right_pointer << " " << a.at(right_pointer)<< "\n";
-            
-            //getchar();
-            if (a.at(left_pointer) >= pivot_value 
-                && a.at(right_pointer) <= pivot_value)
-                {
-                    std::cout << "swap" << "\n";
-                    Swap(a.at(left_pointer), a.at(right_pointer));
-                    ++left_pointer;
-                    --right_pointer;
-                    continue;
-                }
-
-            if (a.at(left_pointer) <= pivot_value)
-            {
-                if (left_pointer < pivot_index)
-                {
-                    std::cout << "left smaller, advance" << "\n";
-                    ++left_pointer;
-                }
-                
+        while (true) {
+            // Ensure left_pointer is incremented, and j is decremented at least once
+            do {
+                left_pointer++;
+            } while (a.at(left_pointer) < pivot); // stop incrementing when left_pointer is == or > pivot value
+            do {
+                right_pointer--;
+            } while (a.at(right_pointer) > pivot); // stop decrementing when right_pointer is == or < pivot value
+            if (left_pointer >= right_pointer) {
+                break;
             }
-
-            if (a.at(right_pointer) >= pivot_value)
-            {
-                if (right_pointer > pivot_index)
-                {
-                    std::cout << "right larger, advance" << "\n";
-                    --right_pointer;
-                }
-            }
+            // swap the lower and higher values in the array positions located at the left and right pointers
+            Swap(a.at(left_pointer), a.at(right_pointer));
         }
-
-        // Call quick sort on the lower and higher sub-arrays
-        QuickSort(a, low, pivot_index);
-        QuickSort(a, pivot_index + 1, high);
+        // recursively call quicksort on the two newly created subarrays, using right_pointer here mandates a + 1 on the
+        // higher array call. This is due to the fact that the pivot itself can change position.
+        // from low (bottom of the array) -> right pointer (lower side)
+        QuickSort(a, low, right_pointer);
+        // from right_pointer + 1 -> high
+        QuickSort(a, right_pointer + 1, high);
     }
 }
 
 int main()
 {
-    std::vector<int> data = {1000, 44, 2, 10, 9, 10, 18, 3, 20, 2000, 34, 1999, 3482, 23};
+    std::vector<int> data = {-8, 1000, 44, 2, 10, 9, 10, 18, 3, 20, 521, 6, 5, 10, 8, 2000, 34, 1999, 3482, 23};
     std::cout << "data before sorting: "
               << "\n";
     PrintArray(data);
