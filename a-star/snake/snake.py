@@ -15,29 +15,30 @@ class Snake:
         self.head_colour = h_colour
         self.score = 0
 
-    def move(self, active_food, first_snake, second_snake):
+    def move(self, active_food, first_snake, second_snake, is_human):
         # Get the current position of the snake's head
         head = self.body[0]
 
-        # Call the a_star() function to get the path from the snake's head to the food
-        path = a_star(head, active_food.position, first_snake, second_snake)
+        if not is_human:
+            # Call the a_star() function to get the path from the snake's head to the food
+            path = a_star(head, active_food.position, first_snake, second_snake)
 
-        # If the path is not empty, get the next position and set the snake's position == to it.
-        if path:
-            # Get the next position of the snake's head from the path
-            next_position = path[1]
+            # If the path is not empty, get the next position and set the snake's position == to it.
+            if path:
+                # Get the next position of the snake's head from the path
+                next_position = path[1]
 
-            # Determine the direction of the snake's next move
-            x_diff = next_position[0] - head[0]
-            y_diff = next_position[1] - head[1]
-            if x_diff == -1:
-                self.direction = "left"
-            elif x_diff == 1:
-                self.direction = "right"
-            elif y_diff == -1:
-                self.direction = "up"
-            elif y_diff == 1:
-                self.direction = "down"
+                # Determine the direction of the snake's next move
+                x_diff = next_position[0] - head[0]
+                y_diff = next_position[1] - head[1]
+                if x_diff == -1:
+                    self.direction = "left"
+                elif x_diff == 1:
+                    self.direction = "right"
+                elif y_diff == -1:
+                    self.direction = "up"
+                elif y_diff == 1:
+                    self.direction = "down"
 
         # Move the snake to the next position
         if self.direction == "up":

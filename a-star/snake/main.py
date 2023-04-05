@@ -61,6 +61,7 @@ def print_results(font, size):
 snake_one = Snake(2, WHITE, BLUE)
 snake_two = Snake(4, YELLOW, GREEN)
 food = Food()
+human_player = True
 
 running = True
 while running:
@@ -68,10 +69,25 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP and snake_one.direction != "down":
+                snake_one.direction = "up"
+            elif event.key == pygame.K_DOWN and snake_one.direction != "up":
+                snake_one.direction = "down"
+            elif event.key == pygame.K_LEFT and snake_one.direction != "right":
+                snake_one.direction = "left"
+            elif event.key == pygame.K_RIGHT and snake_one.direction != "left":
+                snake_one.direction = "right"
 
-    # Move the Snake
-    snake_one.move(food, snake_one, snake_two)
-    snake_two.move(food, snake_one, snake_two)
+    # Move the snake
+    snake_one.move(food, snake_one, snake_two, human_player)
+
+    # Check for snake collision with itself
+    if snake_one.is_colliding():
+        snake_one.dead = True
+
+    if snake_on_snake_collision(snake_one, snake_two):
+        snake_one.dead = True
 
     # Check for collision with Food
     if snake_one.body[0] == food.position:
@@ -79,20 +95,15 @@ while running:
         snake_one.score += 10
         snake_one.grow = True
 
-    if snake_two.body[0] == food.position:
-        food.position = food.generate_position(snake_one, snake_two)
-        snake_two.score += 10
-        snake_two.grow = True
-
-    # Check for snake collision with itself
-    if snake_one.is_colliding():
-        snake_one.dead = True
+    snake_two.move(food, snake_one, snake_two, False)
 
     if snake_two.is_colliding():
         snake_two.dead = True
 
-    if snake_on_snake_collision(snake_one, snake_two):
-        snake_one.dead = True
+    if snake_two.body[0] == food.position:
+        food.position = food.generate_position(snake_one, snake_two)
+        snake_two.score += 10
+        snake_two.grow = True
 
     if snake_on_snake_collision(snake_two, snake_one):
         snake_two.dead = True
