@@ -24,7 +24,7 @@ GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 # Directions - used to find the neighbours of a node
 DIRS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
 
-FPS = 10
+FPS = 60
 
 # Initialise Pygame - no pygame function can be called before this function is called
 pygame.init()
@@ -36,32 +36,44 @@ clock = pygame.time.Clock()
 
 
 def print_results(font, size):
-    # print to the console
     # https://datagy.io/python-concatenate-string-int/
+    # Generate score strings
     white_snake_score = "white snake: " + str(snake_one.score)
     yellow_snake_score = "yellow snake: " + str(snake_two.score)
-    print(white_snake_score)
-    print(yellow_snake_score)
+    if white_snake_score > yellow_snake_score:
+        winner_text = "white snake wins!"
+    elif yellow_snake_score > white_snake_score:
+        winner_text = "yellow snake wins!"
+    else:
+        winner_text = "Draw!"
 
     global screen
 
-    # print to the GUI
+    # Print results to GUI
     # https://stackoverflow.com/questions/20842801/how-to-display-text-in-pygame
     # creating font object, create text_surface, and then blit the text_surface to the screen
-    GAME_FONT = pygame.freetype.Font("FiraSans-Book.ttf", 48)
-    ws_text_surface, rect = GAME_FONT.render(white_snake_score, RED)
-    ys_text_surface, rect = GAME_FONT.render(yellow_snake_score, RED)
+    GAME_FONT = pygame.freetype.Font("FiraSans-Book.ttf", 36)
+    ws_text_surface, rect = GAME_FONT.render(white_snake_score, GREEN)
+    ys_text_surface, rect = GAME_FONT.render(yellow_snake_score, GREEN)
+    win_text_surface, rect = GAME_FONT.render(winner_text, GREEN)
+    screen.blit(win_text_surface, (100, 50))
     screen.blit(ws_text_surface, (100, 150))
-    screen.blit(ys_text_surface, (100, 350))
+    screen.blit(ys_text_surface, (100, 250))
     pygame.display.flip()
+
+    # Print results to console
+    print(winner_text)
+    print(white_snake_score)
+    print(yellow_snake_score)
+
     # wait for 2 seconds
-    time.sleep(2)
+    time.sleep(5)
 
 
 snake_one = Snake(2, WHITE, BLUE)
 snake_two = Snake(4, YELLOW, GREEN)
 food = Food()
-human_player = True
+human_player = False
 
 running = True
 while running:
@@ -85,11 +97,12 @@ while running:
 
         # Check for snake collision with itself or goes out of bounds
         if snake_one.is_colliding():
-            print("should be true")
             snake_one.dead = True
 
-        if snake_on_snake_collision(snake_one, snake_two):
-            snake_one.dead = True
+        # Ensures that if a dead snake is 'hit', alive snake will not die when hitting it
+        if not snake_two.dead:
+            if snake_on_snake_collision(snake_one, snake_two):
+                snake_one.dead = True
 
         # Check for collision with Food
         if snake_one.body[0] == food.position:
@@ -108,8 +121,9 @@ while running:
             snake_two.score += 10
             snake_two.grow = True
 
-    if snake_on_snake_collision(snake_two, snake_one):
-        snake_two.dead = True
+        if not snake_one.dead:
+            if snake_on_snake_collision(snake_two, snake_one):
+                snake_two.dead = True
 
     if snake_one.dead and snake_two.dead:
         print_results("FiraSans-Book.ttf", 24)
