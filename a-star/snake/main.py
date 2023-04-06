@@ -79,31 +79,34 @@ while running:
             elif event.key == pygame.K_RIGHT and snake_one.direction != "left":
                 snake_one.direction = "right"
 
-    # Move the snake
-    snake_one.move(food, snake_one, snake_two, human_player)
+    if not snake_one.dead:
+        # Move the snake
+        snake_one.move(food, snake_one, snake_two, human_player)
 
-    # Check for snake collision with itself
-    if snake_one.is_colliding():
-        snake_one.dead = True
+        # Check for snake collision with itself or goes out of bounds
+        if snake_one.is_colliding():
+            print("should be true")
+            snake_one.dead = True
 
-    if snake_on_snake_collision(snake_one, snake_two):
-        snake_one.dead = True
+        if snake_on_snake_collision(snake_one, snake_two):
+            snake_one.dead = True
 
-    # Check for collision with Food
-    if snake_one.body[0] == food.position:
-        food.position = food.generate_position(snake_one, snake_two)
-        snake_one.score += 10
-        snake_one.grow = True
+        # Check for collision with Food
+        if snake_one.body[0] == food.position:
+            food.position = food.generate_position(snake_one, snake_two)
+            snake_one.score += 10
+            snake_one.grow = True
 
-    snake_two.move(food, snake_one, snake_two, False)
+    if not snake_two.dead:
+        snake_two.move(food, snake_one, snake_two, False)
 
-    if snake_two.is_colliding():
-        snake_two.dead = True
+        if snake_two.is_colliding():
+            snake_two.dead = True
 
-    if snake_two.body[0] == food.position:
-        food.position = food.generate_position(snake_one, snake_two)
-        snake_two.score += 10
-        snake_two.grow = True
+        if snake_two.body[0] == food.position:
+            food.position = food.generate_position(snake_one, snake_two)
+            snake_two.score += 10
+            snake_two.grow = True
 
     if snake_on_snake_collision(snake_two, snake_one):
         snake_two.dead = True
@@ -116,8 +119,10 @@ while running:
     screen.fill(BLACK)
 
     # Draw the Snake and Food
-    snake_one.draw(screen)
-    snake_two.draw(screen)
+    if not snake_one.dead:
+        snake_one.draw(screen)
+    if not snake_two.dead:
+        snake_two.draw(screen)
     food.draw(screen, RED)
 
     # Update the display

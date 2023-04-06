@@ -3,11 +3,11 @@ import pygame
 from a_star import *
 
 
-class Snake:
+class Snake(object):
     # div = division. Used to set the start position of the Snake in a dynamic way. Allows multiple snakes to be created
     # not dependent on screen-resolution
     def __init__(self, div, b_colour, h_colour):
-        self.body = [(GRID_WIDTH // div, GRID_HEIGHT // div)]
+        self.body = [(GRID_WIDTH // div, GRID_HEIGHT // div)] # decides starting position
         self.direction = random.choice(["up", "down", "left", "right"])
         self.grow = False
         self.dead = False
