@@ -24,7 +24,7 @@ GRID_HEIGHT = SCREEN_HEIGHT // GRID_SIZE
 # Directions - used to find the neighbours of a node
 DIRS = [(0, -1), (0, 1), (-1, 0), (1, 0)]
 
-FPS = 10
+FPS = 30
 
 # Initialise Pygame - no pygame function can be called before this function is called
 pygame.init()
@@ -73,7 +73,7 @@ def print_results(font, size):
 snake_one = Snake(2, WHITE, BLUE)
 snake_two = Snake(4, YELLOW, GREEN)
 food = Food()
-human_player = True
+human_player = False
 
 running = True
 while running:
